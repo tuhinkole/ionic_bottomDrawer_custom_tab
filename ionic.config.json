@@ -1,0 +1,7 @@
+{
+  "name": "bottomDrawer",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
