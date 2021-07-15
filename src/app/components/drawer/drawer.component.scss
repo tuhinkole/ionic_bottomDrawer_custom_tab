@@ -1,0 +1,26 @@
+.drawer {
+    position: absolute;
+    box-shadow: rgba(0,0,0,0.12) 0px 4px 16px;
+    width: 100%;
+    border-radius: 20px;
+    bottom: calc(-80vh + env(safe-area-inset-bottom));
+    height: 88vh;
+    z-index: 10;
+    background: #45be0d;
+}
+.drawer-pull {
+    background: #ffffff;
+    height: 4px;
+    width: 70px;
+    border-radius: 2px;
+}
+.imgStyle {
+    position: relative;
+    height: 100px;
+    width: auto !important;
+    border-radius: 20px;
+    display: block;
+    margin: auto;
+    margin-top: 10px;
+
+}
