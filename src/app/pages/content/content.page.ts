@@ -2,6 +2,11 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BrowserTab } from '@ionic-native/browser-tab/ngx';
 import { Insomnia } from '@ionic-native/insomnia/ngx';
+import { SafariViewController } from '@ionic-native/safari-view-controller/ngx';
+import { Platform } from '@ionic/angular';
+import { MenuListPageRoutingModule } from '../menu-list/menu-list-routing.module';
+
+
 
 declare const window: any;
 declare var cordova : any;
@@ -14,47 +19,16 @@ export class ContentPage implements OnInit {
   backdropVisible = false;
 
   level = null;
-  showValue = null;
+  showValue: string = "";
 
-  constructor(private insomnia: Insomnia,private browserTab: BrowserTab,private route: ActivatedRoute,private changeDetectorRef: ChangeDetectorRef) {
-
-    this.getToken();
-
-    this.insomnia.keepAwake()
-    .then(
-      () => {
-        console.log('keepAwake success')
-        this.getToken();
-
-      },
-      () =>{
-        console.log('keepAwake error')
-      }
-    );
-  
-  this.insomnia.allowSleepAgain()
-    .then(
-      () => {
-        console.log('allowSleepAgain success')
-        this.getToken();
-
-      },
-      () => {
-        console.log('allowSleepAgain error')
-      }
-    );
+  constructor(
+    private plaform: Platform,
+    private insomnia: Insomnia,
+    private browserTab: BrowserTab,
+    private route: ActivatedRoute,
+    private safariViewController: SafariViewController,
+    private changeDetectorRef: ChangeDetectorRef) {
    }
-
-   ionViewWillEnter(){
-    this.getToken();
-
- 
-  }
-  ionViewDidEnter(){
-    this.getToken();
-
-
-  }
 
    handleOpenUrl(url: string) {
      let urlArr = url.split("?");
@@ -64,12 +38,7 @@ export class ContentPage implements OnInit {
    }
 
   ngOnInit() {
-    this.getToken();
     this.level = this.route.snapshot.paramMap.get('level');
-  }
-
-  ngAfterViewInit(){
-   this.getToken();
   }
 
   toggleBackdrop(isVisible){
@@ -79,78 +48,65 @@ export class ContentPage implements OnInit {
   }
 
   openUrl(){
-    this.testUrl((ev)=>{
-      this.getToken();
+    this.testUrl((result)=>{
+      console.log(result);
+      if(result.event === 'opened') console.log('Opened');
+        else if(result.event === 'loaded') console.log('Loaded');
+        else if(result.event === 'closed'){
+          this.getToken();
+        }
+    }, err=>{
+      console.log(err);
     })
 
   }
  
 
-  async testUrl(callback){
-    this.browserTab.isAvailable()
-        .then((isAvailable: boolean) => {
+  async testUrl(callback, error){
+    var testURL = 'https://staging.stockedge.com/Login/Test?client_id=SE-TEST-REDIRECT-LOGIN-ACCESS-CODE&redirect_uri=io.ionic.starter://test/cordova/io.ionic.starter/callback';
 
-        if(isAvailable) {
-          var testURL = 'https://staging.stockedge.com/Login/Test?client_id=SE-TEST-REDIRECT-LOGIN-ACCESS-CODE&redirect_uri=io.ionic.starter://test/cordova/io.ionic.starter/callback';
+    this.safariViewController.isAvailable()
+  .then((available: boolean) => {
+      if (available) {
 
-            this.browserTab.openUrl(testURL)
-            .then((result: any) => {
-              alert(JSON.stringify(result));
-              this.getToken();
-              callback();
-            },
-            (error: any) => console.error(error)
-          );
+        this.safariViewController.show({
+          url: testURL,
+          hidden: false,
+          animated: false,
+          transition: 'curl',
+          enterReaderModeIfAvailable: true,
+          tintColor: '#ff0000'
+        })
+        .subscribe((result: any) => {
+            callback(result)
+          },
+          (err: any) => {
+            error(err);
+          }
+        );
 
-          this.browserTab.close().then(()=>{
-            callback();
-
-          })
-            
-
-        } else {
-
-          console.log('if custom tabs are not available you may  use InAppBrowser');
-          
-        }
-
-        });   
-    
-    
-
-// cordova.plugins.browsertab.isAvailable(function(result) {
-//     if (!result) {
-//       cordova.InAppBrowser.open(testURL, '_system');
-//     } else {
-//       cordova.plugins.browsertab.openUrl(
-//           testURL,
-//           function(successResp) {
-//             this.getToken();
-//           },
-//           function(failureResp) {
-
-//           });
-//     }
-//   },
-//   function(isAvailableError) {
-//   });
+      } else {
+        // use fallback browser, example InAppBrowser
+      }
+    }
+  );
 }
 
-getToken(){
-  window.handleOpenURL = (url: string) => {
-    setTimeout(() => {
-      this.handleOpenUrl(url);
-    }, 300);
-  };
-
-  // check if app was opened by custom url scheme
-  const lastUrl: string = window.handleOpenURL_LastURL || "";
-  if (lastUrl && lastUrl !== "") {
-    window.handleOpenURL_LastURL;
-    setTimeout(() => {
-      this.handleOpenUrl(lastUrl);
-    }, 300);
+  getToken(){
+    console.log("a");
+    this.showValue = "Before Extract";
+    (window as any).handleOpenURL = (url: string) => {
+      console.log("b", url)
+      this.showValue = "After url Extract";
+      let urlArr = url.split("?");
+      let token = urlArr[urlArr.length - 1].split("=")[1];
+      alert(token);
+      this.showValue = "Url Extracted";
+      this.plaform.resume.subscribe(()=>{
+        this.showValue = token
+        console.log("d", this.showValue, token);
+      });
+    };
   }
-}
 
 }

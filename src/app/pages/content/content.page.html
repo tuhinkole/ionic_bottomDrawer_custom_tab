@@ -6,11 +6,11 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" scrollY="false">
-    <ion-button expand="full">I was opened from level: {{level}}</ion-button>
+    <ion-button expand="full">I was opened from level: {{level}} {{showValue}}</ion-button>
     <div class="backdrop" [ngClass]="backdropVisible ? 'fade-in' : 'fade'" tappable (click)="drawer.toggleDrawer()"></div>
     <ion-button (click)="drawer.toggleDrawer()" expand="full">Open the Drawer !</ion-button>
     <app-drawer (openStateChanged)="toggleBackdrop($event)" #drawer></app-drawer>
     <ion-button ion-button (click)="openUrl()" expand="full" color="danger"> Login With Kotak Securities</ion-button>
-    <ion-text *ngIf="showValue">{{showValue}}</ion-text>
+    <h1>{{showValue}}</h1>
 
 </ion-content>
